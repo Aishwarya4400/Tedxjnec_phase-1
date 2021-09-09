@@ -1,0 +1,43 @@
+## In root user
+
+sudo apt-get update
+sudo apt-get install docker.io
+sudo apt-get install -y apt-transport-https ca-certificates curl
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+swapoff -a
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
+ufw disable
+vi /etc/docker/daemon.json
+##Add these lines
+{
+"exec-opts": ["native.cgroupdriver=systemd"]
+}
+## Save file
+
+systemctl status kubelet
+systemctl status docker
+systemctl restart docker
+systemctl restart kubelet
+systemctl status kubelet
+systemctl status docker
+
+kubeadm reset -f
+
+kubeadm init
+
+## In Normal user
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+kubectl get nodes
+
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+ 
